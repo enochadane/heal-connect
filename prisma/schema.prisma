@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Doctor {
+  id                  String   @id @default(cuid())
+  name                String
+  title               String   @default("Consultant Psychiatrist")
+  email               String
+  phone               String
+  bio                 String
+  specializations     String[]
+  experience          Int      // Years of experience
+  education           String
+  hospitalAffiliation String?
+  location            String
+  consultationFee     Float
+  currency            String   @default("USD")
+  availableDays       String[]
+  availableHours      String   @default("9:00 AM - 5:00 PM")
+  consultationModes   String[] @default(["Phone Call", "Email", "Video Call"])
+  languages           String[] @default(["English"])
+  image               String   @default("https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80")
+  rating              Float    @default(4.9)
+  reviewCount         Int      @default(12)
+  isVerified          Boolean  @default(true)
+  isActive            Boolean  @default(true)
+  isFeatured          Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([location])
+  @@index([isActive])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
