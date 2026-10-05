@@ -30,7 +30,7 @@ export default function Navbar() {
                 Heal<span className="text-brand-600">Connect</span>
               </span>
               <span className="text-[10px] block font-medium text-slate-500 uppercase tracking-wider -mt-1">
-                Psychiatrist Discovery
+                Professional Discovery
               </span>
             </div>
           </Link>
@@ -78,7 +78,7 @@ export default function Navbar() {
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg border border-brand-200/80 transition-all shadow-sm"
             >
               <Search className="w-4 h-4" />
-              <span>Browse Psychiatrists</span>
+              <span>Browse Professionals</span>
             </Link>
 
             <Link
@@ -129,7 +129,7 @@ export default function Navbar() {
               isActive('/doctors') ? 'text-brand-700 bg-brand-50 font-semibold' : 'text-slate-700'
             }`}
           >
-            Find Psychiatrists
+            Find Professionals
           </Link>
           <Link
             href="/#how-it-works"
@@ -152,7 +152,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="w-full text-center py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg shadow-sm"
             >
-              Find a Psychiatrist
+              Find a Professional
             </Link>
             <Link
               href="/admin/login"

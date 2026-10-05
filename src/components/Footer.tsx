@@ -44,7 +44,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Empowering individuals to discover verified, licensed psychiatrists and schedule consultations with ease and privacy.
+              Empowering individuals to discover verified, licensed mental health specialists and schedule consultations with ease and privacy.
             </p>
             <div className="flex items-center gap-2 text-xs text-brand-400 font-medium">
               <Sparkles className="w-3.5 h-3.5" />
@@ -58,7 +58,7 @@ export default function Footer() {
             <ul className="space-y-2.5 text-sm text-slate-400">
               <li>
                 <Link href="/doctors" className="hover:text-brand-300 transition-colors">
-                  All Psychiatrists
+                  All Specialists
                 </Link>
               </li>
               <li>
@@ -113,13 +113,12 @@ export default function Footer() {
               Need assistance finding a practitioner or onboarding as a medical professional?
             </p>
             <div className="space-y-2 text-sm text-slate-300">
-              <a href="mailto:support@healconnect.med" className="flex items-center gap-2 hover:text-brand-300 transition-colors">
+              <a href="mailto:support@healconnect.com" className="flex items-center gap-2 hover:text-brand-300 transition-colors">
                 <Mail className="w-4 h-4 text-brand-400" />
-                <span>support@healconnect.med</span>
+                <span>support@healconnect.com</span>
               </a>
-              <div className="flex items-center gap-2 text-slate-400">
-                <Phone className="w-4 h-4 text-brand-400" />
-                <span>+1 (800) 432-5266</span>
+              <div className="flex items-center gap-2 text-slate-400 text-xs">
+                <span>Available Mon – Sat, 8:30 AM – 6:00 PM EAT</span>
               </div>
             </div>
           </div>
@@ -131,7 +130,7 @@ export default function Footer() {
             © {new Date().getFullYear()} HealConnect Platform. All rights reserved. Medical information provided for directory discovery.
           </p>
           <p className="max-w-xl text-center md:text-right text-slate-500">
-            Disclaimer: HealConnect is an informational directory platform connecting patients with independent psychiatrists. Direct consultations, diagnosis, treatment, and payments are managed between patient and doctor.
+            Disclaimer: HealConnect is an informational directory platform connecting patients with independent licensed doctors and mental health specialists. Direct consultations, diagnosis, treatment, and payments are managed between patient and doctor.
           </p>
         </div>
       </div>

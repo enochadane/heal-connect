@@ -66,7 +66,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-24 pb-20 overflow-hidden">
-      {/* 1. Hero Section: Meet Compassionate Psychiatrists on Your Terms */}
+      {/* 1. Hero Section: Meet Compassionate Doctors on Your Terms */}
       <section className="relative pt-10 pb-20 md:pt-16 md:pb-28 overflow-hidden">
         {/* Ambient Glows */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[400px] bg-brand-200/40 rounded-full blur-3xl -z-10 pointer-events-none" />
@@ -85,17 +85,17 @@ export default function HomePage() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
               Meet Compassionate <br className="hidden sm:inline" />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-700 via-brand-600 to-teal-500">
-                Psychiatrists
+                Doctors & Specialists
               </span>{' '}
               on Your Terms
             </h1>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
-              HealConnect connects you directly with verified psychiatrists. Explore transparent consultation fees in <strong>ETB</strong> or <strong>USD</strong>, review clinical backgrounds, and book consultations securely.
+              HealConnect connects you directly with verified doctors and mental health specialists. Explore transparent consultation fees in <strong>ETB</strong> or <strong>USD</strong>, review clinical backgrounds, and book consultations securely.
             </p>
 
-            {/* Psychiatrist Discovery Launcher Card */}
+            {/* Specialist Discovery Launcher Card */}
             <div className="pt-4 max-w-3xl mx-auto">
               <form
                 onSubmit={handleSearchSubmit}
@@ -168,17 +168,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. Psychiatrist Discovery & How It Works */}
+      {/* 2. Specialist Discovery & How It Works */}
       <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <h2 className="text-xs font-bold uppercase tracking-widest text-brand-600 mb-2">
-            Psychiatrist Discovery Process
+            Specialist Discovery Process
           </h2>
           <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             How HealConnect Works
           </h3>
           <p className="mt-3 text-sm text-slate-600">
-            A safe, transparent, and private journey to finding the right psychiatric support.
+            A safe, transparent, and private journey to finding the right mental health care.
           </p>
         </div>
 
@@ -188,7 +188,7 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-xl bg-brand-100 text-brand-700 font-extrabold text-lg flex items-center justify-center mb-6 border border-brand-200">
               01
             </div>
-            <h4 className="text-lg font-bold text-slate-900 mb-2">Explore Psychiatrists</h4>
+            <h4 className="text-lg font-bold text-slate-900 mb-2">Explore Specialists</h4>
             <p className="text-sm text-slate-600 leading-relaxed">
               Filter licensed specialists by mental health condition, clinical background, session format (Video, In-Person), and consultation fee in ETB or USD.
             </p>
@@ -218,7 +218,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Featured Psychiatrists */}
+      {/* 3. Featured Specialists */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
           <div>
@@ -226,7 +226,7 @@ export default function HomePage() {
               Verified Specialists
             </h2>
             <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Featured Psychiatrists
+              Featured Specialists
             </h3>
             <p className="mt-2 text-sm text-slate-600">
               Leading clinicians ready to support your mental wellness journey with fees in ETB and USD.
@@ -250,17 +250,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Explore Psychiatrists by Condition & Specialty */}
+      {/* 4. Explore Specialists by Condition & Specialty */}
       <section id="specializations" className="bg-slate-900 text-white py-20 rounded-3xl mx-4 sm:mx-6 lg:mx-8 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h2 className="text-xs font-bold uppercase tracking-widest text-brand-400 mb-2">
             Specialized Care
           </h2>
           <h3 className="text-3xl font-extrabold text-white tracking-tight">
-            Explore Psychiatrists by Condition & Specialty
+            Explore Specialists by Condition & Specialty
           </h3>
           <p className="mt-3 text-sm text-slate-300">
-            Psychiatrists specialize in diagnosing and treating complex mental health conditions through psychological, behavioral, and medical approaches.
+            Doctors and mental health specialists diagnose and treat emotional, cognitive, and behavioural conditions through psychological and medical approaches.
           </p>
         </div>
 
@@ -332,7 +332,7 @@ export default function HomePage() {
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">Verified Board-Certified Specialists</h4>
                   <p className="text-xs text-slate-600 mt-0.5">
-                    Every psychiatrist undergoes administrative verification before publishing their profile on HealConnect.
+                    Every specialist undergoes administrative verification before publishing their profile on HealConnect.
                   </p>
                 </div>
               </div>
@@ -359,7 +359,7 @@ export default function HomePage() {
             <div className="space-y-4 text-slate-800">
               <span className="text-xs font-bold uppercase tracking-wider text-brand-700">Verified Patient Experience</span>
               <p className="text-base italic text-slate-700 leading-relaxed">
-                “Finding a psychiatrist who understands both local and international contexts was seamless. I chose Dr. Dawit Abebe with the fee stated in ETB, completed the booking, and got his direct intake line immediately.”
+                “Finding a specialist who understands both local and international contexts was seamless. I chose Dr. Dawit Abebe with the fee stated in ETB, completed the booking, and got his direct intake line immediately.”
               </p>
               <div className="pt-2 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center">
@@ -389,7 +389,7 @@ export default function HomePage() {
         <div className="space-y-4">
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
             <h4 className="text-base font-bold text-slate-900 mb-1">
-              How and when do I get the psychiatrist’s phone number and email?
+              How and when do I get the doctor’s phone number and email?
             </h4>
             <p className="text-sm text-slate-600 leading-relaxed">
               Professional phone numbers and email addresses will remain hidden from customers until payment is completed. After payment, the customer may access the professional’s contact information for the scheduled service.
@@ -428,7 +428,7 @@ export default function HomePage() {
               Ready to begin your journey to mental wellness?
             </h3>
             <p className="text-sm text-brand-100 leading-relaxed">
-              Explore verified psychiatrist profiles, view transparent fees in ETB or USD, and book your confidential consultation today.
+              Explore verified specialist profiles, view transparent fees in ETB or USD, and book your confidential consultation today.
             </p>
           </div>
 
@@ -437,7 +437,7 @@ export default function HomePage() {
               href="/doctors"
               className="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-brand-50 text-brand-800 text-sm font-bold rounded-xl shadow-lg transition-all text-center"
             >
-              Browse All Psychiatrists
+              Browse All Specialists
             </Link>
             <Link
               href="/admin/login"

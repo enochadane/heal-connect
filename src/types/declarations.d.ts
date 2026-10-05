@@ -67,4 +67,11 @@ declare module 'lucide-react' {
   export const Headphones: LucideIcon;
   export const HelpCircle: LucideIcon;
   export const FilterX: LucideIcon;
+  export const XCircle: LucideIcon;
+  export const Loader2: LucideIcon;
+  export const Landmark: LucideIcon;
+  export const Smartphone: LucideIcon;
+  export const RefreshCw: LucideIcon;
+  export const Receipt: LucideIcon;
+  export const ClipboardCopy: LucideIcon;
 }

@@ -303,7 +303,7 @@ export default function EditDoctorPage() {
         {/* Section 2: Clinical Specialties */}
         <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/80 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider text-brand-400">
-            2. Psychiatric Specializations
+            2. Clinical Specializations
           </h2>
 
           <div className="flex flex-wrap gap-2">

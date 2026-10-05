@@ -78,10 +78,10 @@ function DoctorsContent() {
           <span>FIND THE RIGHT PROFESSIONAL FOR YOU</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Psychiatrist Discovery
+          Professional Discovery
         </h1>
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-          Browse verified psychiatrist profiles, view transparent fees in ETB or USD, and schedule your consultation securely. Professional contact information is unlocked upon booking payment.
+          Browse verified specialist profiles, view transparent fees in ETB or USD, and schedule your consultation securely. Professional contact information is unlocked upon booking payment.
         </p>
 
         {/* Protection disclaimer */}
@@ -114,7 +114,7 @@ function DoctorsContent() {
           <Users className="w-4 h-4 text-brand-600" />
           <span>
             Showing <strong className="text-slate-900">{doctors.length}</strong> available{' '}
-            {doctors.length === 1 ? 'psychiatrist' : 'psychiatrists'}
+            {doctors.length === 1 ? 'specialist' : 'specialists'}
             {currency ? ` in ${currency}` : ''}
           </span>
         </div>
@@ -143,7 +143,7 @@ function DoctorsContent() {
           <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
             <FilterX className="w-7 h-7" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">No Psychiatrists Found</h3>
+          <h3 className="text-lg font-bold text-slate-900">No Specialists Found</h3>
           <p className="text-xs text-slate-500 leading-relaxed">
             We couldn’t find any doctors matching your exact filter criteria. Try adjusting your keywords, currency (ETB/USD), or resetting filters.
           </p>

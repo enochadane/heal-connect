@@ -38,23 +38,45 @@ export function maskEmail(email: string): string {
   return '••••••••@••••.com';
 }
 
-const STORAGE_PREFIX = 'healconnect_paid_doc_';
+const CUSTOMER_EMAIL_KEY = 'healconnect_customer_email';
 
-export function isDoctorUnlocked(doctorId: string): boolean {
-  if (typeof window === 'undefined') return false;
+/**
+ * Store the customer's email in localStorage after a booking is submitted.
+ * This email is used to check unlock status via the API.
+ */
+export function setCustomerEmail(email: string): void {
+  if (typeof window === 'undefined') return;
   try {
-    return localStorage.getItem(`${STORAGE_PREFIX}${doctorId}`) === 'true';
+    localStorage.setItem(CUSTOMER_EMAIL_KEY, email.toLowerCase());
   } catch {
-    return false;
+    // localStorage unavailable
   }
 }
 
-export function unlockDoctor(doctorId: string): void {
-  if (typeof window === 'undefined') return;
+/**
+ * Retrieve the stored customer email for unlock checks.
+ */
+export function getCustomerEmail(): string | null {
+  if (typeof window === 'undefined') return null;
   try {
-    localStorage.setItem(`${STORAGE_PREFIX}${doctorId}`, 'true');
-    window.dispatchEvent(new Event('healconnect_doctor_unlocked'));
-  } catch (err) {
-    console.error('Failed to save unlocked doctor:', err);
+    return localStorage.getItem(CUSTOMER_EMAIL_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if a doctor's contact info is unlocked for the current customer.
+ * Calls the bookings API to verify admin-confirmed payment status.
+ */
+export async function checkDoctorUnlocked(doctorId: string): Promise<boolean> {
+  const email = getCustomerEmail();
+  if (!email) return false;
+  try {
+    const res = await fetch(`/api/bookings?doctorId=${doctorId}&email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    return data.unlocked === true;
+  } catch {
+    return false;
   }
 }

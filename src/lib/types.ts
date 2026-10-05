@@ -33,6 +33,32 @@ export interface AdminUser {
   role: 'ADMIN' | 'SUPERADMIN';
 }
 
+export interface BookingRequest {
+  id: string;
+  doctorId: string;
+  doctorName: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  paymentMethod: 'cbe' | 'abyssinia' | 'telebirr';
+  transactionReference: string;
+  amount: number;
+  currency: string;
+  consultationDay: string;
+  consultationMode: string;
+  status: 'pending' | 'confirmed' | 'rejected';
+  createdAt: string;
+  confirmedAt?: string;
+}
+
+export interface PaymentAccount {
+  name: string;
+  label: string;
+  accountName: string;
+  accountNumber: string;
+  icon: string;
+}
+
 export interface DoctorFilterOptions {
   search?: string;
   specialization?: string;

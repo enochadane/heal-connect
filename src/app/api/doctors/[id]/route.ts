@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDoctorById, updateDoctor, deleteDoctor } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
+import { getConfirmedBooking } from '@/lib/bookings';
+import { maskPhone, maskEmail } from '@/lib/formatters';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -13,6 +15,26 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 
     if (!doctor) {
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const email = searchParams.get('email');
+    const session = await getAdminSession();
+
+    let isUnlocked = Boolean(session);
+    if (!isUnlocked && email) {
+      const confirmed = await getConfirmedBooking(id, email);
+      if (confirmed) isUnlocked = true;
+    }
+
+    if (!isUnlocked) {
+      return NextResponse.json({
+        doctor: {
+          ...doctor,
+          phone: maskPhone(doctor.phone),
+          email: maskEmail(doctor.email),
+        },
+      });
     }
 
     return NextResponse.json({ doctor });

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Doctor } from '@/lib/types';
 import { INITIAL_DOCTORS } from '@/lib/mockData';
 import ContactModal from '@/components/ContactModal';
-import { formatFee, maskPhone, maskEmail, isDoctorUnlocked } from '@/lib/formatters';
+import { formatFee, maskPhone, maskEmail, checkDoctorUnlocked, getCustomerEmail } from '@/lib/formatters';
 import { 
   Star, 
   ShieldCheck, 
@@ -20,14 +20,16 @@ import {
   Mail, 
   Video, 
   Award, 
-  ArrowLeft,
-  Share2,
-  Check,
-  CheckCircle2,
-  AlertCircle,
-  Lock,
-  ExternalLink,
-  CalendarCheck
+  ArrowLeft, 
+  Share2, 
+  Check, 
+  CheckCircle2, 
+  AlertCircle, 
+  Lock, 
+  ExternalLink, 
+  CalendarCheck, 
+  Copy, 
+  RefreshCw 
 } from 'lucide-react';
 
 export default function DoctorDetailPage() {
@@ -40,42 +42,53 @@ export default function DoctorDetailPage() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
+  const [checkingUnlock, setCheckingUnlock] = useState(false);
 
-  useEffect(() => {
+  const fetchDoctorProfile = useCallback(async () => {
     if (!id) return;
-
-    fetch(`/api/doctors/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.doctor) {
-          setDoctor(data.doctor);
-        } else {
-          const found = INITIAL_DOCTORS.find((d) => d.id === id);
-          setDoctor(found || null);
-        }
-      })
-      .catch((err) => {
-        console.warn('API error, falling back to mock data:', err);
+    try {
+      const email = getCustomerEmail();
+      const query = email ? `?email=${encodeURIComponent(email)}` : '';
+      const res = await fetch(`/api/doctors/${id}${query}`);
+      const data = await res.json();
+      if (data.doctor) {
+        setDoctor(data.doctor);
+      } else {
         const found = INITIAL_DOCTORS.find((d) => d.id === id);
         setDoctor(found || null);
-      })
-      .finally(() => setLoading(false));
+      }
+    } catch (err) {
+      console.warn('API error, falling back to mock data:', err);
+      const found = INITIAL_DOCTORS.find((d) => d.id === id);
+      setDoctor(found || null);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => {
-    if (id) {
-      setUnlocked(isDoctorUnlocked(id));
-    }
+    fetchDoctorProfile();
+  }, [fetchDoctorProfile]);
 
-    const handleUnlockEvent = () => {
-      if (id) {
-        setUnlocked(isDoctorUnlocked(id));
+  const refreshUnlockStatus = useCallback(async () => {
+    if (!id) return;
+    setCheckingUnlock(true);
+    try {
+      const isUnlocked = await checkDoctorUnlocked(id);
+      setUnlocked(isUnlocked);
+      if (isUnlocked) {
+        await fetchDoctorProfile();
       }
-    };
+    } catch {
+      // silently fail
+    } finally {
+      setCheckingUnlock(false);
+    }
+  }, [id, fetchDoctorProfile]);
 
-    window.addEventListener('healconnect_doctor_unlocked', handleUnlockEvent);
-    return () => window.removeEventListener('healconnect_doctor_unlocked', handleUnlockEvent);
-  }, [id]);
+  useEffect(() => {
+    refreshUnlockStatus();
+  }, [refreshUnlockStatus]);
 
   const handleShare = () => {
     if (typeof window !== 'undefined') {
@@ -85,11 +98,15 @@ export default function DoctorDetailPage() {
     }
   };
 
+  const handleCopy = (value: string) => {
+    navigator.clipboard.writeText(value);
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <div className="inline-block w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-3 text-sm text-slate-500">Loading doctor profile...</p>
+        <p className="mt-3 text-sm text-slate-500">Loading profile...</p>
       </div>
     );
   }
@@ -100,16 +117,16 @@ export default function DoctorDetailPage() {
         <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
           <AlertCircle className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">Doctor Profile Not Found</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Profile Not Found</h2>
         <p className="text-sm text-slate-600">
-          The requested psychiatrist profile could not be found or may have been deactivated.
+          The requested professional profile could not be found or may have been deactivated.
         </p>
         <Link
           href="/doctors"
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Doctor Directory</span>
+          <span>Back to Directory</span>
         </Link>
       </div>
     );
@@ -122,7 +139,7 @@ export default function DoctorDetailPage() {
         <div className="flex items-center gap-2">
           <Link href="/" className="hover:text-brand-700">Home</Link>
           <span>/</span>
-          <Link href="/doctors" className="hover:text-brand-700">Find Psychiatrists</Link>
+          <Link href="/doctors" className="hover:text-brand-700">Find Professionals</Link>
           <span>/</span>
           <span className="text-slate-900 font-medium truncate max-w-xs">{doctor.name}</span>
         </div>
@@ -161,7 +178,7 @@ export default function DoctorDetailPage() {
                   className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-white shadow-xl"
                 />
                 {doctor.isVerified && (
-                  <div className="absolute -bottom-2 -right-2 bg-brand-600 text-white p-1.5 rounded-full shadow-md ring-4 ring-white" title="Verified Licensed Medical Doctor">
+                  <div className="absolute -bottom-2 -right-2 bg-brand-600 text-white p-1.5 rounded-full shadow-md ring-4 ring-white" title="Verified Licensed Professional">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                 )}
@@ -319,8 +336,8 @@ export default function DoctorDetailPage() {
                   <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold block">Service Access Unlocked</span>
-                      <span>Payment completed. You can contact the clinician directly for your consultation.</span>
+                      <span className="font-bold block">Payment Confirmed</span>
+                      <span>You can contact the professional directly for your consultation.</span>
                     </div>
                   </div>
 
@@ -330,7 +347,7 @@ export default function DoctorDetailPage() {
                       className="py-3 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <Phone className="w-3.5 h-3.5" />
-                      <span>Call Clinician</span>
+                      <span>Call Now</span>
                     </a>
 
                     <a
@@ -363,7 +380,7 @@ export default function DoctorDetailPage() {
                       <span>Protected Professional Contact</span>
                     </div>
                     <p className="text-[11px] leading-relaxed text-amber-800">
-                      Professional phone numbers and email addresses will remain hidden from customers until payment is completed. After payment, the customer may access the professional’s contact information for the scheduled service.
+                      Transfer the consultation fee via CBE, Bank of Abyssinia, or Telebirr. Once the admin confirms your payment, you will see the professional&apos;s contact details here.
                     </p>
                   </div>
 
@@ -373,6 +390,16 @@ export default function DoctorDetailPage() {
                   >
                     <CalendarCheck className="w-4 h-4" />
                     <span>Book & Unlock Contact Info</span>
+                  </button>
+
+                  {/* Check status button */}
+                  <button
+                    onClick={refreshUnlockStatus}
+                    disabled={checkingUnlock}
+                    className="w-full py-2.5 px-4 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${checkingUnlock ? 'animate-spin' : ''}`} />
+                    <span>{checkingUnlock ? 'Checking...' : 'Check Payment Status'}</span>
                   </button>
 
                   {/* Masked Preview */}
@@ -407,12 +434,12 @@ export default function DoctorDetailPage() {
 
       </div>
 
-      {/* Booking & Unlock Modal */}
+      {/* Booking Modal */}
       <ContactModal
         doctor={doctor}
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}
-        onPaymentSuccess={() => setUnlocked(true)}
+        onBookingSubmitted={refreshUnlockStatus}
       />
     </div>
   );

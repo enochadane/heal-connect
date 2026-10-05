@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Doctor } from '@/lib/types';
-import { formatFee, maskPhone, maskEmail, isDoctorUnlocked, unlockDoctor } from '@/lib/formatters';
+import { formatFee, maskPhone, maskEmail, setCustomerEmail } from '@/lib/formatters';
+import { PAYMENT_ACCOUNTS, PaymentMethodKey } from '@/lib/paymentConfig';
 import { 
   X, 
   Phone, 
@@ -14,46 +15,48 @@ import {
   CreditCard, 
   ShieldCheck, 
   Lock,
-  ExternalLink,
   CheckCircle2,
   ArrowRight,
   Building2,
-  AlertCircle
+  AlertCircle,
+  Landmark,
+  Smartphone,
+  ClipboardCopy,
+  Loader2
 } from 'lucide-react';
 
 interface ContactModalProps {
   doctor: Doctor | null;
   isOpen: boolean;
   onClose: () => void;
-  onPaymentSuccess?: () => void;
+  onBookingSubmitted?: () => void;
 }
 
-export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess }: ContactModalProps) {
-  const [step, setStep] = useState<'details' | 'payment' | 'unlocked'>('details');
-  const [copiedPhone, setCopiedPhone] = useState(false);
-  const [copiedEmail, setCopiedEmail] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+export default function ContactModal({ doctor, isOpen, onClose, onBookingSubmitted }: ContactModalProps) {
+  const [step, setStep] = useState<'details' | 'payment' | 'submitted'>('details');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingRef, setBookingRef] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   // Form states
-  const [patientName, setPatientName] = useState('');
-  const [patientPhone, setPatientPhone] = useState('');
-  const [patientEmail, setPatientEmail] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedMode, setSelectedMode] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodKey>('telebirr');
+  const [transactionRef, setTransactionRef] = useState('');
+  const [copiedAccount, setCopiedAccount] = useState('');
 
   useEffect(() => {
     if (doctor && isOpen) {
-      if (isDoctorUnlocked(doctor.id)) {
-        setStep('unlocked');
-        setBookingRef(`HC-${Math.floor(100000 + Math.random() * 900000)}`);
-      } else {
-        setStep('details');
-        setSelectedDay(doctor.availableDays[0] || 'Monday');
-        setSelectedMode(doctor.consultationModes[0] || 'Video Consultation');
-        setPaymentMethod(doctor.currency === 'ETB' ? 'Telebirr' : 'Card');
-      }
+      setStep('details');
+      setSelectedDay(doctor.availableDays[0] || '');
+      setSelectedMode(doctor.consultationModes[0] || '');
+      setPaymentMethod('telebirr');
+      setSubmitError('');
+      setTransactionRef('');
+      setBookingRef('');
     }
   }, [doctor, isOpen]);
 
@@ -61,53 +64,69 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
 
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patientName.trim()) {
-      alert('Please enter your full name');
+    if (!customerName.trim() || !customerPhone.trim() || !customerEmail.trim()) {
+      setSubmitError('Please fill in all required fields.');
       return;
     }
+    setSubmitError('');
     setStep('payment');
   };
 
-  const handleExecutePayment = () => {
-    setIsProcessingPayment(true);
-    setTimeout(() => {
-      setIsProcessingPayment(false);
-      const ref = `HC-${Math.floor(100000 + Math.random() * 900000)}`;
-      setBookingRef(ref);
-      unlockDoctor(doctor.id);
-      setStep('unlocked');
-      if (onPaymentSuccess) {
-        onPaymentSuccess();
+  const handleSubmitBooking = async () => {
+    if (!transactionRef.trim()) {
+      setSubmitError('Please enter your transaction reference number.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctorId: doctor.id,
+          customerName,
+          customerPhone,
+          customerEmail,
+          paymentMethod,
+          transactionReference: transactionRef,
+          consultationDay: selectedDay,
+          consultationMode: selectedMode,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit booking.');
       }
-    }, 1200);
+
+      setBookingRef(data.booking.id);
+      setCustomerEmail(customerEmail);
+      setStep('submitted');
+      onBookingSubmitted?.();
+    } catch (err: any) {
+      setSubmitError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleCopyPhone = () => {
-    navigator.clipboard.writeText(doctor.phone);
-    setCopiedPhone(true);
-    setTimeout(() => setCopiedPhone(false), 2500);
+  const handleCopyAccount = (value: string, key: string) => {
+    navigator.clipboard.writeText(value);
+    setCopiedAccount(key);
+    setTimeout(() => setCopiedAccount(''), 2500);
   };
 
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText(doctor.email);
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2500);
+  const selectedAccount = PAYMENT_ACCOUNTS[paymentMethod];
+
+  const paymentMethodIcons: Record<PaymentMethodKey, React.ReactNode> = {
+    cbe: <Building2 className="w-5 h-5 text-blue-600" />,
+    abyssinia: <Landmark className="w-5 h-5 text-purple-600" />,
+    telebirr: <Smartphone className="w-5 h-5 text-emerald-600" />,
   };
-
-  // Generate mailto link
-  const emailSubject = encodeURIComponent(`Consultation Booking [Ref: ${bookingRef}] - ${patientName || 'Patient'}`);
-  const emailBody = encodeURIComponent(
-    `Hello Dr. ${doctor.name},\n\n` +
-    `I have completed payment on HealConnect for a scheduled consultation (Booking Ref: ${bookingRef}).\n\n` +
-    `Patient Name: ${patientName || 'Patient'}\n` +
-    `Contact Phone: ${patientPhone}\n` +
-    `Preferred Day: ${selectedDay}\n` +
-    `Consultation Format: ${selectedMode}\n\n` +
-    `Please confirm the intake paperwork and appointment link.\n\nThank you!`
-  );
-  const mailtoLink = `mailto:${doctor.email}?subject=${emailSubject}&body=${emailBody}`;
-
-  const isETB = doctor.currency?.toUpperCase() === 'ETB';
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
@@ -157,29 +176,41 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
         {/* Step indicator */}
         <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
           <span className={`flex items-center gap-1.5 ${step === 'details' ? 'text-brand-600' : 'text-slate-400'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 'details' ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700'}`}>1</span>
-            Schedule Details
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 'details' ? 'bg-brand-600 text-white' : 'bg-emerald-500 text-white'}`}>
+              {step !== 'details' ? <Check className="w-3 h-3" /> : '1'}
+            </span>
+            Your Details
           </span>
           <span className="text-slate-300">→</span>
           <span className={`flex items-center gap-1.5 ${step === 'payment' ? 'text-brand-600' : 'text-slate-400'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 'payment' ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700'}`}>2</span>
-            Payment ({doctor.currency})
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 'payment' ? 'bg-brand-600 text-white' : step === 'submitted' ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-700'}`}>
+              {step === 'submitted' ? <Check className="w-3 h-3" /> : '2'}
+            </span>
+            Transfer Payment
           </span>
           <span className="text-slate-300">→</span>
-          <span className={`flex items-center gap-1.5 ${step === 'unlocked' ? 'text-emerald-600' : 'text-slate-400'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 'unlocked' ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}`}>3</span>
-            Access Contact Info
+          <span className={`flex items-center gap-1.5 ${step === 'submitted' ? 'text-emerald-600' : 'text-slate-400'}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${step === 'submitted' ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}`}>3</span>
+            Confirmation
           </span>
         </div>
 
-        {/* Step 1: Details */}
+        {/* Error display */}
+        {submitError && (
+          <div className="mx-6 mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <span>{submitError}</span>
+          </div>
+        )}
+
+        {/* Step 1: Customer Details */}
         {step === 'details' && (
           <form onSubmit={handleProceedToPayment} className="p-6 space-y-5">
             {/* Privacy Notice Banner */}
             <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2.5">
               <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <p className="leading-relaxed">
-                <strong>Professional Privacy Policy:</strong> Professional phone numbers and email addresses will remain hidden from customers until payment is completed. After payment, you will immediately access the professional’s contact information for the scheduled service.
+                <strong>How It Works:</strong> Transfer the consultation fee via CBE, Bank of Abyssinia, or Telebirr. Once the admin verifies your payment, you will be able to access the professional&apos;s contact information.
               </p>
             </div>
 
@@ -192,8 +223,8 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
                   <input
                     type="text"
                     required
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Enter your full name"
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                   />
@@ -206,9 +237,9 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
                   <input
                     type="tel"
                     required
-                    value={patientPhone}
-                    onChange={(e) => setPatientPhone(e.target.value)}
-                    placeholder={isETB ? "+251 91 234 5678" : "+1 (212) 555-0199"}
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="e.g. 0911234567 or +251 91 123 4567"
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                   />
                 </div>
@@ -216,13 +247,14 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Your Email Address
+                  Your Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
-                  value={patientEmail}
-                  onChange={(e) => setPatientEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  required
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  placeholder="your.email@example.com"
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 />
               </div>
@@ -265,7 +297,7 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
               <div className="flex items-center justify-between text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5 text-slate-400" />
-                  Doctor Phone:
+                  Professional Phone:
                 </span>
                 <span className="font-mono text-slate-400 bg-slate-200/60 px-2 py-0.5 rounded">
                   {maskPhone(doctor.phone)}
@@ -274,7 +306,7 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
               <div className="flex items-center justify-between text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5 text-slate-400" />
-                  Doctor Email:
+                  Professional Email:
                 </span>
                 <span className="font-mono text-slate-400 bg-slate-200/60 px-2 py-0.5 rounded">
                   {maskEmail(doctor.email)}
@@ -292,25 +324,25 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
           </form>
         )}
 
-        {/* Step 2: Payment */}
+        {/* Step 2: Manual Bank Transfer */}
         {step === 'payment' && (
-          <div className="p-6 space-y-5">
+          <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
             {/* Fee summary */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-600">
                 <span>Service:</span>
-                <span className="font-semibold text-slate-900">Psychiatric Consultation ({selectedMode})</span>
+                <span className="font-semibold text-slate-900">Consultation ({selectedMode})</span>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Clinician:</span>
+                <span>Professional:</span>
                 <span className="font-semibold text-slate-900">{doctor.name}</span>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Scheduled Day:</span>
+                <span>Preferred Day:</span>
                 <span className="font-semibold text-slate-900">{selectedDay} ({doctor.availableHours})</span>
               </div>
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-sm">
-                <span className="font-bold text-slate-900">Consultation Fee:</span>
+                <span className="font-bold text-slate-900">Amount to Transfer:</span>
                 <span className="font-extrabold text-brand-700 text-lg">
                   {formatFee(doctor.consultationFee, doctor.currency)}
                 </span>
@@ -318,81 +350,114 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
             </div>
 
             {/* Payment method selector */}
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                Select Payment Method ({doctor.currency})
+                Select Transfer Method
               </label>
 
-              {isETB ? (
-                <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {(Object.keys(PAYMENT_ACCOUNTS) as PaymentMethodKey[]).map((key) => (
                   <button
+                    key={key}
                     type="button"
-                    onClick={() => setPaymentMethod('Telebirr')}
-                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all ${paymentMethod === 'Telebirr' ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
+                    onClick={() => setPaymentMethod(key)}
+                    className={`p-3 rounded-xl border text-center flex flex-col items-center gap-2 transition-all ${
+                      paymentMethod === key
+                        ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold shadow-sm'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                    }`}
                   >
-                    <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Telebirr</span>
+                    {paymentMethodIcons[key]}
+                    <span className="text-[11px] leading-tight">{PAYMENT_ACCOUNTS[key].label.split('(')[0].trim()}</span>
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('CBE Birr')}
-                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all ${paymentMethod === 'CBE Birr' ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
-                  >
-                    <Building2 className="w-4 h-4 text-purple-600 shrink-0" />
-                    <span>CBE Birr</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('Chapa')}
-                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all ${paymentMethod === 'Chapa' ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
-                  >
-                    <CreditCard className="w-4 h-4 text-teal-600 shrink-0" />
-                    <span>Chapa</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('Card')}
-                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all ${paymentMethod === 'Card' ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
-                  >
-                    <CreditCard className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span>Debit / Credit Card</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('Card')}
-                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all ${paymentMethod === 'Card' ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
-                  >
-                    <CreditCard className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span>Credit / Debit Card</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('Stripe')}
-                    className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all ${paymentMethod === 'Stripe' ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`}
-                  >
-                    <CreditCard className="w-4 h-4 text-indigo-600 shrink-0" />
-                    <span>Stripe Checkout</span>
-                  </button>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
 
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Direct, secure processing. Contact information unlocks immediately.</span>
+            {/* Transfer details for selected method */}
+            <div className="p-4 rounded-2xl bg-brand-50 border border-brand-200 space-y-3">
+              <h4 className="text-xs font-bold text-brand-900 uppercase tracking-wider flex items-center gap-2">
+                {paymentMethodIcons[paymentMethod]}
+                <span>Transfer to {selectedAccount.label}</span>
+              </h4>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-brand-100">
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Account Name</span>
+                    <span className="text-sm font-bold text-slate-900">{selectedAccount.accountName}</span>
+                  </div>
+                  <button
+                    onClick={() => handleCopyAccount(selectedAccount.accountName, `${paymentMethod}-name`)}
+                    className="p-1.5 hover:bg-brand-100 rounded-lg transition-colors"
+                    title="Copy account name"
+                  >
+                    {copiedAccount === `${paymentMethod}-name` ? (
+                      <Check className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <ClipboardCopy className="w-4 h-4 text-slate-400" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-brand-100">
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">
+                      {paymentMethod === 'telebirr' ? 'Phone Number' : 'Account Number'}
+                    </span>
+                    <span className="text-sm font-bold text-slate-900 font-mono">{selectedAccount.accountNumber}</span>
+                  </div>
+                  <button
+                    onClick={() => handleCopyAccount(selectedAccount.accountNumber, `${paymentMethod}-number`)}
+                    className="p-1.5 hover:bg-brand-100 rounded-lg transition-colors"
+                    title="Copy account number"
+                  >
+                    {copiedAccount === `${paymentMethod}-number` ? (
+                      <Check className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <ClipboardCopy className="w-4 h-4 text-slate-400" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-brand-100">
+                  <div>
+                    <span className="text-[11px] text-slate-500 block">Amount</span>
+                    <span className="text-sm font-extrabold text-brand-700">{formatFee(doctor.consultationFee, doctor.currency)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Transaction reference input */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Transaction Reference / Receipt Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={transactionRef}
+                onChange={(e) => setTransactionRef(e.target.value)}
+                placeholder="Enter the reference number from your transfer receipt"
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-mono"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                This is the reference or receipt number you received after completing the transfer.
+              </p>
+            </div>
+
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <span>
+                After submitting, an administrator will verify your payment. Once confirmed, you will be able to see the professional&apos;s contact details on their profile page.
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setStep('details')}
+                onClick={() => { setStep('details'); setSubmitError(''); }}
                 className="py-3 px-4 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl transition-colors"
               >
                 Back
@@ -400,19 +465,19 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
 
               <button
                 type="button"
-                onClick={handleExecutePayment}
-                disabled={isProcessingPayment}
+                onClick={handleSubmitBooking}
+                disabled={isSubmitting || !transactionRef.trim()}
                 className="flex-1 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {isProcessingPayment ? (
+                {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Processing Payment...</span>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Submitting...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Complete Payment & Unlock Contact</span>
+                    <span>Submit Booking Request</span>
                   </>
                 )}
               </button>
@@ -420,8 +485,8 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
           </div>
         )}
 
-        {/* Step 3: Unlocked Contact Info */}
-        {step === 'unlocked' && (
+        {/* Step 3: Booking Submitted - Awaiting Admin Confirmation */}
+        {step === 'submitted' && (
           <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
             {/* Success Banner */}
             <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/90 text-emerald-900 flex items-start gap-3">
@@ -430,105 +495,67 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
               </div>
               <div>
                 <h4 className="font-bold text-sm text-emerald-950">
-                  Payment Completed • Contact Access Unlocked
+                  Booking Request Submitted
                 </h4>
                 <p className="text-xs text-emerald-800 mt-0.5">
-                  Your consultation booking is registered. Booking Reference: <strong className="font-mono">{bookingRef}</strong>. You now have full access to {doctor.name}’s direct contact information.
+                  Your booking reference is <strong className="font-mono">{bookingRef}</strong>. An administrator will verify your payment shortly.
                 </p>
               </div>
             </div>
 
-            {/* Revealed Contact Options */}
-            <div className="space-y-3.5">
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Clinician Contact Information
+            {/* What happens next */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                What Happens Next
               </h4>
-
-              {/* Direct Phone */}
-              <div className="p-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Phone className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 block">
-                      Direct Professional Phone
-                    </span>
-                    <span className="text-base font-extrabold text-slate-900 font-mono">
-                      {doctor.phone}
-                    </span>
+              
+              <div className="space-y-2.5">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center shrink-0 text-[11px] font-bold mt-0.5">1</div>
+                  <div className="text-xs text-slate-700">
+                    <strong>Admin Verification</strong> — Our team will verify your transfer using the transaction reference you provided.
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`tel:${doctor.phone}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>Call Clinician</span>
-                  </a>
-                  <button
-                    onClick={handleCopyPhone}
-                    className="p-2 border border-emerald-300 hover:bg-white text-emerald-800 rounded-xl transition-colors"
-                    title="Copy phone number"
-                  >
-                    {copiedPhone ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Direct Email */}
-              <div className="p-4 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-brand-800 block">
-                      Direct Intake Email
-                    </span>
-                    <span className="text-sm font-bold text-slate-900 truncate block font-mono">
-                      {doctor.email}
-                    </span>
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center shrink-0 text-[11px] font-bold mt-0.5">2</div>
+                  <div className="text-xs text-slate-700">
+                    <strong>Contact Unlocked</strong> — Once confirmed, visit the professional&apos;s profile page to see their phone number and email.
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <a
-                    href={mailtoLink}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Email Doctor</span>
-                  </a>
-                  <button
-                    onClick={handleCopyEmail}
-                    className="p-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl transition-colors"
-                    title="Copy email address"
-                  >
-                    {copiedEmail ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Clinic hours info */}
-              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700">
-                <div>
-                  <span className="font-semibold text-slate-900 block">Consultation Days</span>
-                  <span>{doctor.availableDays.join(', ')}</span>
-                </div>
-                <div>
-                  <span className="font-semibold text-slate-900 block">Office Hours</span>
-                  <span>{doctor.availableHours}</span>
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center shrink-0 text-[11px] font-bold mt-0.5">3</div>
+                  <div className="text-xs text-slate-700">
+                    <strong>Schedule Your Session</strong> — Contact the professional directly to finalize your consultation appointment.
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-100 text-xs text-slate-600">
-              <p className="font-semibold text-slate-800 mb-0.5">Next Steps for Your Session:</p>
-              <p>You can call the clinician directly or click &quot;Email Doctor&quot; to send your intake details with your booking reference code.</p>
+            {/* Booking summary */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs text-slate-700">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Professional:</span>
+                <span className="font-semibold text-slate-900">{doctor.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Amount Transferred:</span>
+                <span className="font-semibold text-slate-900">{formatFee(doctor.consultationFee, doctor.currency)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Payment Method:</span>
+                <span className="font-semibold text-slate-900">{PAYMENT_ACCOUNTS[paymentMethod].label}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Transaction Ref:</span>
+                <span className="font-semibold text-slate-900 font-mono">{transactionRef}</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+              <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <span>
+                Payment verification is typically completed within a few hours during business hours. You will see the contact information on the professional&apos;s profile once confirmed.
+              </span>
             </div>
 
             <div className="flex justify-end">
@@ -536,7 +563,7 @@ export default function ContactModal({ doctor, isOpen, onClose, onPaymentSuccess
                 onClick={onClose}
                 className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition-colors"
               >
-                Close & Return to Profile
+                Close
               </button>
             </div>
           </div>

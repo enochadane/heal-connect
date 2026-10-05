@@ -11,17 +11,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'HealConnect — Discover Verified Psychiatrists & Book Consultations',
+  title: 'HealConnect — Discover Verified Mental Health Professionals & Book Consultations',
   description:
-    'Find and connect directly with board-certified psychiatrists. View transparent consultation fees, specialties, and schedule offline consultations easily via phone or email.',
+    'Find and connect directly with verified mental health professionals. View transparent consultation fees, specialties, and schedule consultations easily via phone or email.',
   keywords: [
-    'psychiatrist',
+    'mental health professional',
     'mental health',
     'therapy',
-    'ADHD psychiatrist',
+    'counseling',
     'depression specialist',
     'anxiety consultation',
-    'telehealth psychiatry',
+    'telehealth',
   ],
 };
 

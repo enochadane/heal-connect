@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     const doctor = await createDoctor({
       name: body.name,
-      title: body.title || 'Consultant Psychiatrist',
+      title: body.title || 'Consultant Specialist',
       email: body.email,
       phone: body.phone,
       bio: body.bio,
@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
         ? body.specializations
         : body.specializations
         ? body.specializations.split(',').map((s: string) => s.trim())
-        : ['General Psychiatry'],
+        : ['General Mental Health'],
       experience: Number(body.experience) || 5,
-      education: body.education || 'MD in Psychiatry',
+      education: body.education || 'Medical Doctor (MD)',
       hospitalAffiliation: body.hospitalAffiliation || null,
       location: body.location || 'Telehealth Available',
       consultationFee: Number(body.consultationFee) || 150,

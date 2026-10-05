@@ -33,14 +33,14 @@ export default function OnboardDoctorPage() {
 
   // Form State
   const [name, setName] = useState('');
-  const [title, setTitle] = useState('Board-Certified Psychiatrist');
+  const [title, setTitle] = useState('Board-Certified Mental Health Specialist');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [selectedSpecs, setSelectedSpecs] = useState<string[]>(['Depression', 'Anxiety & Panic']);
   const [customSpec, setCustomSpec] = useState('');
   const [experience, setExperience] = useState('10');
-  const [education, setEducation] = useState('MD in Psychiatry, Board Certified');
+  const [education, setEducation] = useState('MD, Board Certified Specialist');
   const [hospitalAffiliation, setHospitalAffiliation] = useState('');
   const [location, setLocation] = useState('New York, NY (Telehealth available)');
   const [consultationFee, setConsultationFee] = useState('175');
@@ -145,7 +145,7 @@ export default function OnboardDoctorPage() {
             <span>Back to Doctors Directory</span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Onboard New Psychiatrist
+            Onboard New Doctor
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Fill in doctor credentials and contact info to publish them on HealConnect.
@@ -189,7 +189,7 @@ export default function OnboardDoctorPage() {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Adult & Adolescent Psychiatrist"
+                placeholder="e.g. Consultant Mental Health Specialist"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-500"
@@ -257,7 +257,7 @@ export default function OnboardDoctorPage() {
         {/* Section 2: Clinical Specialties */}
         <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/80 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider text-brand-400">
-            2. Psychiatric Specializations
+            2. Clinical Specializations
           </h2>
 
           <div className="flex flex-wrap gap-2">
@@ -547,7 +547,7 @@ export default function OnboardDoctorPage() {
             className="px-6 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2"
           >
             <UserPlus className="w-4 h-4" />
-            <span>{loading ? 'Publishing Doctor...' : 'Publish Psychiatrist Profile'}</span>
+            <span>{loading ? 'Publishing Doctor...' : 'Publish Doctor Profile'}</span>
           </button>
         </div>
       </form>

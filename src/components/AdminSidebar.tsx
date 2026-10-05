@@ -10,7 +10,8 @@ import {
   Globe, 
   LogOut, 
   HeartHandshake, 
-  ShieldCheck 
+  ShieldCheck,
+  Receipt
 } from 'lucide-react';
 
 export default function AdminSidebar() {
@@ -34,9 +35,14 @@ export default function AdminSidebar() {
       icon: LayoutDashboard,
     },
     {
-      name: 'Manage Psychiatrists',
+      name: 'Manage Doctors',
       href: '/admin/doctors',
       icon: Users,
+    },
+    {
+      name: 'Payment Requests',
+      href: '/admin/bookings',
+      icon: Receipt,
     },
     {
       name: 'Onboard New Doctor',

@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
             Administrator Dashboard
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Manage psychiatrist profiles, verify onboarding requests, and monitor directory metrics.
+            Manage doctor profiles, verify onboarding requests, and monitor directory metrics.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
         {/* Total Doctors */}
         <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Psychiatrists</span>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Doctors</span>
             <div className="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
       {/* Quick Action Banner */}
       <div className="p-6 rounded-2xl bg-gradient-to-r from-brand-900/70 via-slate-800 to-teal-900/60 border border-brand-700/40 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="font-bold text-white text-base">Want to onboard a new psychiatrist?</h3>
+          <h3 className="font-bold text-white text-base">Want to onboard a new doctor?</h3>
           <p className="text-xs text-slate-300">
             Fill out the onboarding form with their contact details, specialties, fees, and bio to publish immediately.
           </p>
@@ -150,15 +150,15 @@ export default function AdminDashboardPage() {
           className="shrink-0 px-5 py-2.5 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-colors flex items-center gap-1.5"
         >
           <UserPlus className="w-4 h-4" />
-          <span>Add New Psychiatrist</span>
+          <span>Add New Doctor</span>
         </Link>
       </div>
 
-      {/* Recent Psychiatrists Table */}
+      {/* Recent Doctors Table */}
       <div className="bg-slate-800/60 rounded-2xl border border-slate-700/80 overflow-hidden shadow-xl">
         <div className="p-5 border-b border-slate-700/80 flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-white text-sm">Psychiatrist Onboarding Directory</h3>
+            <h3 className="font-bold text-white text-sm">Doctor Directory Overview</h3>
             <p className="text-xs text-slate-400">Manage, edit, or deactivate published clinician profiles</p>
           </div>
           <Link

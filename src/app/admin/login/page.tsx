@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
           Admin Portal
         </h2>
         <p className="text-xs text-slate-400">
-          Sign in to onboard and manage psychiatrist profiles
+          Sign in to onboard and manage doctor profiles
         </p>
       </div>
 
