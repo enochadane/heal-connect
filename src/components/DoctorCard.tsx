@@ -3,17 +3,16 @@
 import React from 'react';
 import Link from 'next/link';
 import { Doctor } from '@/lib/types';
+import { formatFee } from '@/lib/formatters';
 import { 
   Star, 
   ShieldCheck, 
   MapPin, 
   Clock, 
-  Phone, 
-  Mail, 
-  Video, 
-  Calendar, 
+  Lock, 
   Award,
-  ArrowRight
+  ArrowRight,
+  CalendarCheck
 } from 'lucide-react';
 
 interface DoctorCardProps {
@@ -73,7 +72,7 @@ export default function DoctorCard({ doctor, onBookClick }: DoctorCardProps) {
             </div>
           </div>
 
-          {/* Location & Hospital */}
+          {/* Location */}
           <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-600">
             <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span className="truncate">{doctor.location}</span>
@@ -107,9 +106,15 @@ export default function DoctorCard({ doctor, onBookClick }: DoctorCardProps) {
           </div>
 
           <div className="text-right font-bold text-slate-900">
-            <span className="text-brand-700 text-sm">${doctor.consultationFee}</span>
+            <span className="text-brand-700 text-sm">{formatFee(doctor.consultationFee, doctor.currency)}</span>
             <span className="text-[10px] text-slate-500 font-normal"> / session</span>
           </div>
+        </div>
+
+        {/* Protected Contact Badge */}
+        <div className="px-6 py-2 bg-slate-100/60 border-b border-slate-100 text-[11px] text-slate-500 flex items-center gap-1.5">
+          <Lock className="w-3 h-3 text-slate-400 shrink-0" />
+          <span className="truncate">Contact info unlocked after payment</span>
         </div>
       </div>
 
@@ -127,8 +132,8 @@ export default function DoctorCard({ doctor, onBookClick }: DoctorCardProps) {
           onClick={() => onBookClick && onBookClick(doctor)}
           className="flex-1 py-2.5 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm hover:shadow-md shadow-brand-600/20 transition-all text-center inline-flex items-center justify-center gap-1.5"
         >
-          <Phone className="w-3 h-3" />
-          <span>Contact / Book</span>
+          <CalendarCheck className="w-3.5 h-3.5" />
+          <span>Book & Unlock</span>
         </button>
       </div>
     </div>

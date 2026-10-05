@@ -254,8 +254,8 @@ export default function AdminDoctorsPage() {
 
                     {/* Fee & Hours */}
                     <td className="p-4 space-y-0.5">
-                      <div className="font-bold text-white">
-                        ${doc.consultationFee} <span className="text-[10px] text-slate-400 font-normal">{doc.currency}</span>
+                      <div className="font-bold text-white text-xs">
+                        {doc.currency?.toUpperCase() === 'ETB' ? `${doc.consultationFee.toLocaleString()} ETB` : `$${doc.consultationFee.toLocaleString()} USD`}
                       </div>
                       <div className="text-[10px] text-slate-400 truncate max-w-[120px]">
                         {doc.availableDays.slice(0, 2).join(', ')}

@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Search, MapPin, Stethoscope, DollarSign, SlidersHorizontal, RotateCcw } from 'lucide-react';
-import { SPECIALIZATIONS_LIST, CONSULTATION_MODES } from '@/lib/mockData';
+import { Search, MapPin, Stethoscope, DollarSign, SlidersHorizontal, RotateCcw, CreditCard } from 'lucide-react';
+import { SPECIALIZATIONS_LIST, CONSULTATION_MODES, CURRENCIES_LIST } from '@/lib/mockData';
 
 interface SearchBarProps {
   search: string;
@@ -15,6 +15,8 @@ interface SearchBarProps {
   setMaxFee: (value: string) => void;
   mode: string;
   setMode: (value: string) => void;
+  currency?: string;
+  setCurrency?: (value: string) => void;
   onReset: () => void;
 }
 
@@ -29,9 +31,11 @@ export default function SearchBar({
   setMaxFee,
   mode,
   setMode,
+  currency = '',
+  setCurrency,
   onReset,
 }: SearchBarProps) {
-  const hasActiveFilters = Boolean(search || specialization || location || maxFee || mode);
+  const hasActiveFilters = Boolean(search || specialization || location || maxFee || mode || currency);
 
   return (
     <div className="bg-white rounded-2xl shadow-subtle border border-slate-200/90 p-5 md:p-6 space-y-4">
@@ -44,7 +48,7 @@ export default function SearchBar({
           </div>
           <input
             type="text"
-            placeholder="Search by doctor name, specialty, or condition (e.g. ADHD, Depression)..."
+            placeholder="Search doctor, condition (e.g. ADHD, Depression, Stress)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
@@ -76,7 +80,7 @@ export default function SearchBar({
           </div>
           <input
             type="text"
-            placeholder="City, State, or Telehealth"
+            placeholder="City, Addis Ababa, Telehealth..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
@@ -92,8 +96,25 @@ export default function SearchBar({
             Quick Filters:
           </span>
 
+          {/* Currency Filter (ETB or USD) */}
+          {setCurrency && (
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+              <CreditCard className="w-3.5 h-3.5 text-brand-600" />
+              <span className="text-slate-600">Fee Currency:</span>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="bg-transparent border-none text-slate-900 font-semibold focus:outline-none cursor-pointer"
+              >
+                <option value="">All Currencies (ETB & USD)</option>
+                <option value="ETB">ETB (Ethiopian Birr)</option>
+                <option value="USD">USD ($)</option>
+              </select>
+            </div>
+          )}
+
           {/* Consultation Mode */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {CONSULTATION_MODES.map((m) => {
               const val = m === 'All Modes' ? '' : m;
               const isSelected = mode === val;
@@ -111,23 +132,6 @@ export default function SearchBar({
                 </button>
               );
             })}
-          </div>
-
-          {/* Max Price Filter Dropdown */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
-            <DollarSign className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-slate-600">Max Fee:</span>
-            <select
-              value={maxFee}
-              onChange={(e) => setMaxFee(e.target.value)}
-              className="bg-transparent border-none text-slate-900 font-semibold focus:outline-none cursor-pointer"
-            >
-              <option value="">Any Fee</option>
-              <option value="150">Under $150</option>
-              <option value="180">Under $180</option>
-              <option value="200">Under $200</option>
-              <option value="250">Under $250</option>
-            </select>
           </div>
         </div>
 

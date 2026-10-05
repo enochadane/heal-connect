@@ -248,7 +248,7 @@ export default function EditDoctorPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Direct Clinic Phone (for Bookings) <span className="text-red-400">*</span>
+                Direct Clinic Phone (Protected until payment) <span className="text-red-400">*</span>
               </label>
               <input
                 type="text"
@@ -257,6 +257,7 @@ export default function EditDoctorPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500"
               />
+              <span className="text-[11px] text-slate-500 mt-1 block">Phone number remains hidden until customer completes payment.</span>
             </div>
 
             <div>
@@ -366,7 +367,7 @@ export default function EditDoctorPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Consultation Fee ($)
+                Consultation Fee Amount
               </label>
               <input
                 type="number"
@@ -379,14 +380,16 @@ export default function EditDoctorPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Currency
+                Currency (ETB or USD)
               </label>
-              <input
-                type="text"
+              <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500"
-              />
+                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500 cursor-pointer"
+              >
+                <option value="ETB">ETB - Ethiopian Birr</option>
+                <option value="USD">USD - US Dollar ($)</option>
+              </select>
             </div>
           </div>
 

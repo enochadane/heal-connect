@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
     const maxFee = searchParams.get('maxFee') ? Number(searchParams.get('maxFee')) : undefined;
     const mode = searchParams.get('mode') || undefined;
     const day = searchParams.get('day') || undefined;
+    const currency = searchParams.get('currency') || undefined;
 
     const doctors = await getDoctors({
       search,
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
       maxFee,
       mode,
       day,
+      currency,
     });
 
     return NextResponse.json({ doctors });

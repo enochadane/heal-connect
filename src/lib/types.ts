@@ -40,4 +40,5 @@ export interface DoctorFilterOptions {
   maxFee?: number;
   mode?: string;
   day?: string;
+  currency?: string;
 }
