@@ -15,11 +15,15 @@ const isDatabaseConfigured = () => {
 };
 
 export async function getDoctors(options: DoctorFilterOptions = {}): Promise<Doctor[]> {
-  const { search, specialization, location, maxFee, mode, day } = options;
+  const { search, specialization, location, maxFee, mode, day, currency } = options;
 
   if (isDatabaseConfigured()) {
     try {
       const where: Record<string, any> = { isActive: true };
+
+      if (currency && currency !== 'All Currencies') {
+        where.currency = currency;
+      }
 
       if (search) {
         where.OR = [
@@ -100,6 +104,12 @@ export async function getDoctors(options: DoctorFilterOptions = {}): Promise<Doc
   if (mode && mode !== 'All Modes') {
     filtered = filtered.filter((doc) =>
       doc.consultationModes.some((m) => m.toLowerCase() === mode.toLowerCase())
+    );
+  }
+
+  if (currency && currency !== 'All Currencies') {
+    filtered = filtered.filter(
+      (doc) => doc.currency?.toUpperCase() === currency.toUpperCase()
     );
   }
 

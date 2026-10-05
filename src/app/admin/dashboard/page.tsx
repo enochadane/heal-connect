@@ -207,8 +207,8 @@ export default function AdminDashboardPage() {
                     <div className="font-mono text-slate-300">{doc.phone}</div>
                     <div className="text-slate-400 truncate max-w-[150px]">{doc.email}</div>
                   </td>
-                  <td className="p-4 font-bold text-white">
-                    ${doc.consultationFee} <span className="text-[10px] text-slate-400 font-normal">{doc.currency}</span>
+                  <td className="p-4 font-bold text-white text-xs">
+                    {doc.currency?.toUpperCase() === 'ETB' ? `${doc.consultationFee.toLocaleString()} ETB` : `$${doc.consultationFee.toLocaleString()} USD`}
                   </td>
                   <td className="p-4">
                     {doc.isActive ? (

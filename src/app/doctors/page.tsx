@@ -7,7 +7,7 @@ import { INITIAL_DOCTORS } from '@/lib/mockData';
 import DoctorCard from '@/components/DoctorCard';
 import SearchBar from '@/components/SearchBar';
 import ContactModal from '@/components/ContactModal';
-import { Stethoscope, Users, Sparkles, FilterX } from 'lucide-react';
+import { Stethoscope, Users, Sparkles, FilterX, Lock } from 'lucide-react';
 
 function DoctorsContent() {
   const searchParams = useSearchParams();
@@ -24,6 +24,7 @@ function DoctorsContent() {
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [maxFee, setMaxFee] = useState(searchParams.get('maxFee') || '');
   const [mode, setMode] = useState(searchParams.get('mode') || '');
+  const [currency, setCurrency] = useState(searchParams.get('currency') || '');
 
   // Fetch doctors whenever filters change
   useEffect(() => {
@@ -36,6 +37,7 @@ function DoctorsContent() {
         if (location) params.set('location', location);
         if (maxFee) params.set('maxFee', maxFee);
         if (mode) params.set('mode', mode);
+        if (currency) params.set('currency', currency);
 
         const res = await fetch(`/api/doctors?${params.toString()}`);
         const data = await res.json();
@@ -50,7 +52,7 @@ function DoctorsContent() {
     };
 
     fetchDoctors();
-  }, [search, specialization, location, maxFee, mode]);
+  }, [search, specialization, location, maxFee, mode, currency]);
 
   const handleResetFilters = () => {
     setSearch('');
@@ -58,6 +60,7 @@ function DoctorsContent() {
     setLocation('');
     setMaxFee('');
     setMode('');
+    setCurrency('');
     router.push('/doctors');
   };
 
@@ -72,14 +75,20 @@ function DoctorsContent() {
       <div className="space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-800 text-xs font-semibold">
           <Stethoscope className="w-3.5 h-3.5 text-brand-600" />
-          <span>Verified Mental Health Specialists</span>
+          <span>FIND THE RIGHT PROFESSIONAL FOR YOU</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Find Your Psychiatrist
+          Psychiatrist Discovery
         </h1>
-        <p className="text-sm sm:text-base text-slate-600 max-w-2xl">
-          Browse verified psychiatrist profiles, review qualifications, and contact clinicians directly via phone or email for consultations.
+        <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
+          Browse verified psychiatrist profiles, view transparent fees in ETB or USD, and schedule your consultation securely. Professional contact information is unlocked upon booking payment.
         </p>
+
+        {/* Protection disclaimer */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-600">
+          <Lock className="w-3.5 h-3.5 text-slate-500" />
+          <span>Professional phone numbers and email addresses remain hidden until payment is completed.</span>
+        </div>
       </div>
 
       {/* Interactive Search & Filter Box */}
@@ -94,6 +103,8 @@ function DoctorsContent() {
         setMaxFee={setMaxFee}
         mode={mode}
         setMode={setMode}
+        currency={currency}
+        setCurrency={setCurrency}
         onReset={handleResetFilters}
       />
 
@@ -104,6 +115,7 @@ function DoctorsContent() {
           <span>
             Showing <strong className="text-slate-900">{doctors.length}</strong> available{' '}
             {doctors.length === 1 ? 'psychiatrist' : 'psychiatrists'}
+            {currency ? ` in ${currency}` : ''}
           </span>
         </div>
 
@@ -133,7 +145,7 @@ function DoctorsContent() {
           </div>
           <h3 className="text-lg font-bold text-slate-900">No Psychiatrists Found</h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            We couldn’t find any doctors matching your exact filter criteria. Try adjusting your keywords or resetting filters.
+            We couldn’t find any doctors matching your exact filter criteria. Try adjusting your keywords, currency (ETB/USD), or resetting filters.
           </p>
           <button
             onClick={handleResetFilters}
